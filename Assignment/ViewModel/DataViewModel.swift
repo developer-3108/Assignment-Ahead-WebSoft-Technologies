@@ -10,7 +10,7 @@ import Combine
 
 class DataViewModel: ObservableObject {
     @Published var dataModel: DataModel? = nil
-    @Published var apiURL: String  = "https://demo.socialnetworking.solutions/sesapi/navigation?restApi=Sesapi&sesapi_platform=1&auth_token=B179%20086bb56c32731633335762"
+    @Published var apiURL: String  = "https://demo.socialnetworking.solutions/sesapi/navigation?restApi=\(restApi)&sesapi_platform=\(sesapi_platform)&auth_token=\(authtoken)"
     
     private let maxRetries: Int = 3
     private let retryDelay: TimeInterval = 2.0
