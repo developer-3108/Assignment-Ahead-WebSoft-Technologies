@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var showLoadingAnimation = LoadingAnimationHelper.shared
     var body: some View {
-        MenuScreen()
+        VStack {
+            MenuScreen()
+        }
+        .showLoadingView(showLoadingAnimation.isLoading)
     }
 }
 
