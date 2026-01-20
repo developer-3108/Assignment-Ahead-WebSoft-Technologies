@@ -8,19 +8,29 @@
 import SwiftUI
 
 struct ContentBoxView: View {
+    let imageURL: String
+    let title: String
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Image(systemName: "globe.fill")
-                .foregroundStyle(.indigo)
+            if let url = URL(string: imageURL) {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: 25, maxHeight: 25)
+                } placeholder: {
+                    ProgressView()
+                }
+            }
             
-            Text("Message")
+            Text(title)
                 .foregroundStyle(.black)
                 .font(.subheadline)
                 .fontWeight(.bold)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 70)
+        .frame(height: 80)
         .background(
             RoundedRectangle(cornerRadius: 5)
                 .fill(Color.white)

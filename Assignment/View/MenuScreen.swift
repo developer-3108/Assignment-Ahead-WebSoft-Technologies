@@ -9,6 +9,9 @@ import SwiftUI
 
 struct MenuScreen: View {
     
+    @StateObject var dataViewModel = DataViewModel()
+    @State private var isAppsExpanded = false
+    
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
@@ -16,59 +19,51 @@ struct MenuScreen: View {
     
     var body: some View {
         ScrollView(showsIndicators: false) {
-            headerBar
-            
-            UserProfile()
-            
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(0..<10, id: \.self) { _ in
-                    ContentBoxView()
+            VStack(alignment: .leading, spacing: 20) {
+                
+                headerBar
+                
+                UserProfile()
+                
+                ForEach(dataViewModel.groupedSections) { section in
+                    VStack(alignment: .leading, spacing: 10) {
+                        
+                        if let title = section.title {
+                            Text(title.capitalized)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        let itemsToShow = (section.isCollapsible && !isAppsExpanded) ? Array(section.items.prefix(4)) : section.items
+                        
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(Array(itemsToShow.enumerated()), id: \.element.id) { index, item in
+                                ContentBoxView(imageURL: item.icon, title: item.label)
+                            }
+                        }
+                        
+                        if section.isCollapsible && !isAppsExpanded {
+                            Button {
+                                    isAppsExpanded = true
+                            } label: {
+                                SeeMoreButton
+                            }
+                        }
+                        
+                    }
                 }
+                .padding(.horizontal)
+                
+                SignOutButton
+                    .padding(.horizontal)
             }
-            .padding(.horizontal)
+            .padding(.bottom, 50)
         }
         .showBackgroundView()
-    }
-    
-    var headerBar: some View {
-        HStack {
-            Text("Menu")
-                .foregroundStyle(.primary)
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Spacer()
-            
-            languageSelector
-            
-            searchIcon
+        .onAppear {
+            Task {
+                await dataViewModel.fetchData()
+            }
         }
-        .padding(.horizontal)
-    }
-    
-    var languageSelector: some View {
-        HStack {
-            Image(systemName: "globe.fill")
-                
-            Text("IND-INR-EN")
-            
-            Image(systemName: "chevron.down")
-        }
-        .font(.callout)
-        .foregroundStyle(.black)
-        .padding(10)
-        .background(Capsule().fill(Color(.systemGray4)))
-    }
-    
-    var searchIcon: some View {
-        Image(systemName: "magnifyingglass")
-            .padding(10)
-            .background(Circle().fill(Color(.systemGray4)))
-            .font(.callout)
-            .foregroundStyle(.black)
     }
 }
-
-//#Preview {
-//    MenuScreen()
-//}

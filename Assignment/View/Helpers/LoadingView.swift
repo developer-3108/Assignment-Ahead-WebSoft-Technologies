@@ -9,10 +9,26 @@ import SwiftUI
 
 struct LoadingView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+            
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .primary))
+                .scaleEffect(1.5)
+        }
     }
 }
 
-#Preview {
-    LoadingView()
+extension View {
+    func showLoadingView(_ isLoading: Bool) -> some View {
+        ZStack {
+            self
+                .disabled(isLoading)
+            
+            if isLoading {
+                LoadingView()
+            }
+        }
+    }
 }

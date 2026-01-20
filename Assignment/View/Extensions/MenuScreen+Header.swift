@@ -7,12 +7,43 @@
 
 import SwiftUI
 
-struct MenuScreen_Header: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+extension MenuScreen {
+    var headerBar: some View {
+        HStack {
+            Text("Menu")
+                .foregroundStyle(.primary)
+                .font(.title)
+                .fontWeight(.bold)
+            
+            Spacer()
+            
+            languageSelector
+            
+            searchIcon
+        }
+        .padding(.horizontal)
     }
-}
-
-#Preview {
-    MenuScreen_Header()
+    
+    var languageSelector: some View {
+        HStack {
+            Image(systemName: "globe.fill")
+                
+            Text("IND-INR-EN")
+            
+            Image(systemName: "chevron.down")
+        }
+        .font(.callout)
+        .foregroundStyle(.black)
+        .padding(10)
+        .background(Capsule().fill(Color(.systemGray5)))
+    }
+    
+    var searchIcon: some View {
+        Image(systemName: "magnifyingglass")
+            .padding(10)
+            .background(Circle().fill(Color(.systemGray5)))
+            .font(.callout)
+            .fontWeight(.bold)
+            .foregroundStyle(.black)
+    }
 }
