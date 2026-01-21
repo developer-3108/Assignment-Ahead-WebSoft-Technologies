@@ -1,5 +1,5 @@
 //
-//  MenuScren+Buttons.swift
+//  MenuScreen+Buttons.swift
 //  Assignment
 //
 //  Created by Akshat Srivastava on 21/01/26.

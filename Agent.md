@@ -94,7 +94,7 @@ Assignment/
 │   │
 │   ├── Extensions/
 │   │   ├── MenuScreen+Header.swift    # Header bar extension
-│   │   └── MenuScren+Buttons.swift   # Button components extension
+│   │   └── MenuScreen+Buttons.swift   # Button components extension
 │   │
 │   └── Helpers/
 │       ├── BackgroundView.swift       # Custom background view
@@ -195,7 +195,7 @@ Assignment/
   - User name display
   - "Edit Profile" button
 
-### 10. **MenuScren+Buttons.swift**
+### 10. **MenuScreen+Buttons.swift**
 - **Purpose:** Button components and action button styling
 - **Components:**
   - `SeeMoreButton` - Gray button for expanding collapsible sections
@@ -364,7 +364,7 @@ The `actionButtons` computed property in `DataViewModel` extension:
 - Edit `MenuScreen.swift` for layout changes
 - Modify `ContentBoxView.swift` for item appearance
 - Update `DataViewModel.groupedSections` for grouping logic
-- Update `ActionButtonView(menu:)` in `MenuScren+Buttons.swift` for action button styling
+- Update `ActionButtonView(menu:)` in `MenuScreen+Buttons.swift` for action button styling
 
 **When adding new API calls:**
 - Add methods to `DataViewModel.swift`
@@ -438,7 +438,7 @@ The `actionButtons` computed property in `DataViewModel` extension:
 | File | Purpose | Extends |
 |------|---------|---------|
 | `MenuScreen+Header.swift` | Header bar UI | `MenuScreen` |
-| `MenuScren+Buttons.swift` | Button components and action buttons | `MenuScreen` |
+| `MenuScreen+Buttons.swift` | Button components and action buttons | `MenuScreen` |
 
 ### Utilities
 | File | Purpose | Key Functions |
@@ -458,7 +458,7 @@ The `actionButtons` computed property in `DataViewModel` extension:
 
 ### Modifying Action Buttons
 1. Action buttons are automatically extracted from API data
-2. To change styling, edit `ActionButtonView(menu:)` in `MenuScren+Buttons.swift`
+2. To change styling, edit `ActionButtonView(menu:)` in `MenuScreen+Buttons.swift`
 3. Button identification uses `class` property:
    - Rate Us: `"core_main_sesapi_rate"`
    - Sign Out: `"core_mini_auth"`
