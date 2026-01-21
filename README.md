@@ -93,7 +93,7 @@ Assignment/
 │   │
 │   ├── Extensions/
 │   │   ├── MenuScreen+Header.swift    # Header bar extension
-│   │   └── MenuScren+Buttons.swift   # Button components extension
+│   │   └── MenuScreen+Buttons.swift   # Button components extension
 │   │
 │   └── Helpers/
 │       ├── BackgroundView.swift       # Custom background view
@@ -240,7 +240,7 @@ The app transforms the flat menu array into organized sections:
 ### View Extensions
 
 - **MenuScreen+Header** - Header bar with menu title and controls
-- **MenuScren+Buttons** - Button components extension
+- **MenuScreen+Buttons** - Button components extension
   - `SeeMoreButton` - Gray button for expanding collapsible sections
   - `ActionButtonView(menu:)` - Dynamic button styling based on menu item class
 
