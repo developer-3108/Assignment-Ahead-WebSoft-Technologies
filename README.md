@@ -27,22 +27,22 @@ This is a SwiftUI-based iOS application that displays a dynamic menu interface w
 
 <div align="center">
   
-<img src="Screenshots/IMG_4777.png" width="300" alt="Menu Screen">
+<img src="Screenshots/IMG_4777.png" width="300" alt="Menu Screen"><br>
 *Main Menu Screen*
-
-<img src="Screenshots/IMG_4780.png" width="300" alt="Menu Items">
+<br>
+<img src="Screenshots/IMG_4780.png" width="300" alt="Menu Items"><br>
 *Menu Items Display*
-
-<img src="Screenshots/IMG_4781.png" width="300" alt="APPS Section">
+<br>
+<img src="Screenshots/IMG_4781.png" width="300" alt="APPS Section"><br>
 *APPS Section*
-
-<img src="Screenshots/IMG_4782.png" width="300" alt="Expanded APPS">
+<br>
+<img src="Screenshots/IMG_4782.png" width="300" alt="Expanded APPS"><br>
 *Expanded APPS Section*
-
-<img src="Screenshots/IMG_4783.png" width="300" alt="Action Buttons">
+<br>
+<img src="Screenshots/IMG_4783.png" width="300" alt="Action Buttons"><br>
 *Rate Us and Sign Out Buttons*
-
-<img src="Screenshots/IMG_4784.png" width="300" alt="Full Menu View">
+<br>
+<img src="Screenshots/IMG_4784.png" width="300" alt="Full Menu View"><br>
 *Complete Menu View*
 
 </div>
