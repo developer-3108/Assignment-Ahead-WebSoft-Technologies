@@ -84,6 +84,7 @@ The project follows the **MVVM (Model-View-ViewModel)** architectural pattern:
 Assignment/
 ├── AssignmentApp.swift          # App entry point
 ├── ContentView.swift             # Root view with loading overlay
+├── Secrets.swift                 # API configuration constants
 │
 ├── Model/
 │   └── DataModel.swift           # Core data models (DataModel, Result, Menu, MenuSection)
@@ -140,15 +141,24 @@ Assignment/
 - **Purpose:** Business logic and API communication
 - **Key Properties:**
   - `@Published var dataModel: DataModel?` - Observable menu data
-  - `@Published var apiURL: String` - API endpoint
+  - `let apiURL: String` - API endpoint constructed from Secrets.swift constants
 - **Key Methods:**
-  - `fetchData(retryCount:)` - Async API call with retry mechanism
-  - `groupedSections` - Transforms flat menu array into sections (filters out action buttons)
-  - `actionButtons` - Returns "Rate Us" and "Sign Out" menu items for button display
+  - `fetchData(retryCount:)` - Async API call with retry mechanism (default retryCount: 0)
+  - `groupedSections` - Computed property that transforms flat menu array into sections (filters out action buttons)
+  - `actionButtons` - Computed property that returns "Rate Us" and "Sign Out" menu items for button display
+- **Retry Configuration:**
+  - `maxRetries: Int = 3` - Maximum retry attempts
+  - `retryDelay: TimeInterval = 2.0` - Delay in seconds between retries
 - **Retry Logic:**
-  - Maximum 3 retries
-  - 2-second delay between retries
   - Automatic retry on network/decoding errors
+  - Uses `Task.sleep` for delay between retries
+  - Logs retry attempts and final failure
+- **API URL Construction:**
+  - Built dynamically using constants from `Secrets.swift`:
+    - `restApi` - API name ("Sesapi")
+    - `sesapi_platform` - Platform identifier (1)
+    - `authtoken` - Authentication token
+  - Format: `"https://demo.socialnetworking.solutions/sesapi/navigation?restApi=\(restApi)&sesapi_platform=\(sesapi_platform)&auth_token=\(authtoken)"`
 
 ### 5. **DataModel.swift**
 - **Purpose:** Data structures for API response
@@ -193,6 +203,14 @@ Assignment/
     - **Rate Us** (`core_main_sesapi_rate`): White background with shadow, icon and text
     - **Sign Out** (`core_mini_auth`): Red border, red text, transparent background
 
+### 11. **Secrets.swift**
+- **Purpose:** API configuration constants
+- **Constants:**
+  - `restApi: String = "Sesapi"` - API name identifier
+  - `sesapi_platform: Int = 1` - Platform identifier
+  - `authtoken: String = "B179086bb56c32731633335762"` - Authentication token
+- **Usage:** Referenced in `DataViewModel.apiURL` for dynamic URL construction
+
 ---
 
 ## Data Flow
@@ -202,21 +220,30 @@ Assignment/
 ```
 1. MenuScreen.onAppear
    ↓
-2. DataViewModel.fetchData()
+2. Task { await dataViewModel.fetchData() }
    ↓
 3. startLoadingAnimation() → LoadingAnimationHelper.shared.isLoading = true
    ↓
-4. URLSession.shared.data(from: url)
+4. URLSession.shared.data(from: apiURL)
    ↓
 5. JSONDecoder().decode(DataModel.self, from: data)
    ↓
-6. dataModel = decodedResponse (on MainActor)
+6. dataModel = decodedResponse (on MainActor.run)
    ↓
 7. stopLoadingAnimation() → LoadingAnimationHelper.shared.isLoading = false
    ↓
 8. groupedSections computed property transforms data
    ↓
 9. MenuScreen renders sections in LazyVGrid
+   
+   On Error:
+   ↓
+   - If retryCount < maxRetries:
+     → Task.sleep(retryDelay)
+     → fetchData(retryCount: retryCount + 1)
+   - Else:
+     → stopLoadingAnimation()
+     → Log max retries reached
 ```
 
 ### State Updates Flow
@@ -244,9 +271,17 @@ DataViewModel.dataModel (Published)
 ## API Integration
 
 ### Endpoint
+The API URL is dynamically constructed in `DataViewModel.apiURL` using constants from `Secrets.swift`:
 ```
-https://demo.socialnetworking.solutions/sesapi/navigation?restApi=Sesapi&sesapi_platform=1&auth_token=B179%20086bb56c32731633335762
+https://demo.socialnetworking.solutions/sesapi/navigation?restApi=\(restApi)&sesapi_platform=\(sesapi_platform)&auth_token=\(authtoken)
 ```
+
+**Configuration:**
+- API Base: `https://demo.socialnetworking.solutions/sesapi/navigation`
+- Query Parameters:
+  - `restApi` - From `Secrets.restApi` ("Sesapi")
+  - `sesapi_platform` - From `Secrets.sesapi_platform` (1)
+  - `auth_token` - From `Secrets.authtoken` (URL encoded automatically)
 
 ### Response Structure
 ```json
@@ -273,19 +308,29 @@ The last two items in the `menus` array are special action buttons:
 These are automatically filtered out from regular sections and displayed as full-width buttons at the bottom of the screen.
 
 ### Data Transformation
-The `groupedSections` computed property in `DataViewModel`:
-1. Filters out action buttons (Rate Us and Sign Out) from the menu array
-2. Iterates through remaining menu items
-3. Groups items by section headers (type 0)
-4. Creates `MenuSection` objects with:
-   - Section title
-   - Menu items array
-   - Collapsible flag (true for "APPS" section)
 
-The `actionButtons` computed property:
-1. Filters menu array for action button items
-2. Returns items where `class == "core_main_sesapi_rate"` (Rate Us) or `class == "core_mini_auth"` (Sign Out)
-3. These buttons are displayed separately at the bottom of the screen
+**groupedSections (Computed Property):**
+The `groupedSections` computed property in `DataViewModel` extension:
+1. Safely unwraps `dataModel?.result.menus` (returns empty array if nil)
+2. Filters out action buttons:
+   - Excludes items where `class == "core_main_sesapi_rate"` (Rate Us)
+   - Excludes items where `class == "core_mini_auth"` (Sign Out)
+3. Iterates through remaining menu items
+4. Groups items by section headers (`menu.type == 0`)
+5. Creates `MenuSection` objects with:
+   - `title: String?` - Section header label (nil if no header)
+   - `items: [Menu]` - Array of menu items in the section
+   - `isCollapsible: Bool` - True only for "APPS" section
+6. Returns final section even if no closing header found
+
+**actionButtons (Computed Property):**
+The `actionButtons` computed property in `DataViewModel` extension:
+1. Safely unwraps `dataModel?.result.menus` (returns empty array if nil)
+2. Filters menu array for action button items
+3. Returns items where:
+   - `class == "core_main_sesapi_rate"` (Rate Us), OR
+   - `class == "core_mini_auth"` (Sign Out)
+4. These buttons are displayed separately at the bottom of the screen via `ActionButtonView(menu:)`
 
 ---
 
@@ -375,10 +420,11 @@ The `actionButtons` computed property:
 | File | Purpose | Key Concepts |
 |------|---------|--------------|
 | `AssignmentApp.swift` | App entry point | `@main`, `WindowGroup` |
-| `ContentView.swift` | Root view | Loading overlay, view composition |
-| `MenuScreen.swift` | Main screen | `@StateObject`, `LazyVGrid`, sections |
-| `DataViewModel.swift` | Business logic | `ObservableObject`, async/await, retry |
+| `ContentView.swift` | Root view | Loading overlay, `@StateObject` for LoadingAnimationHelper |
+| `MenuScreen.swift` | Main screen | `@StateObject`, `LazyVGrid`, sections, `Task` for async |
+| `DataViewModel.swift` | Business logic | `ObservableObject`, async/await, retry, computed properties |
 | `DataModel.swift` | Data structures | `Decodable`, `Identifiable`, `CodingKeys` |
+| `Secrets.swift` | API configuration | Global constants for API URL parameters |
 
 ### View Components
 | File | Purpose | Usage |
@@ -397,8 +443,9 @@ The `actionButtons` computed property:
 ### Utilities
 | File | Purpose | Key Functions |
 |------|---------|---------------|
-| `Helpers.swift` | Debug logging | `debugLog(message:type:)` |
-| `LoadingAnimationHelper.swift` | Loading state | `startLoadingAnimation()`, `stopLoadingAnimation()` |
+| `Helpers.swift` | Debug logging | `debugLog(message:type:)`, `LogType` enum |
+| `LoadingAnimationHelper.swift` | Loading state | Singleton pattern, `@Published isLoading`, `startLoadingAnimation()`, `stopLoadingAnimation()` |
+| `Secrets.swift` | API configuration | Global constants: `restApi`, `sesapi_platform`, `authtoken` |
 
 ---
 
@@ -421,8 +468,11 @@ The `actionButtons` computed property:
 2. Changes apply to all menu items
 
 ### Changing API Endpoint
-1. Update `DataViewModel.apiURL` property
-2. Or modify `fetchData()` method
+1. Update constants in `Secrets.swift`:
+   - `restApi` - API name
+   - `sesapi_platform` - Platform identifier
+   - `authtoken` - Authentication token
+2. The `apiURL` in `DataViewModel` is automatically constructed from these constants
 
 ### Adding Loading States
 1. Call `startLoadingAnimation()` before async operation
@@ -448,7 +498,9 @@ The `actionButtons` computed property:
 ### Async/Await Pattern
 - All API calls use `async/await`
 - `MainActor.run` ensures UI updates on main thread
-- Retry logic implemented with `Task.sleep`
+- Retry logic implemented with `Task.sleep(nanoseconds:)` for delays
+- `Task { }` blocks used in `.onAppear` for async operations
+- Functions marked with `@MainActor` for thread-safe loading state updates
 
 ### Identifiable Protocol
 - `Menu` conforms to `Identifiable` for `ForEach` usage
@@ -465,11 +517,12 @@ The `actionButtons` computed property:
 - `LoadingAnimationHelper.shared.isLoading` - Global loading state
 
 ### Key Methods
-- `fetchData(retryCount:)` - Fetch menu data from API
-- `groupedSections` - Transform flat array to sections (excludes action buttons)
-- `actionButtons` - Extract Rate Us and Sign Out items for button display
-- `startLoadingAnimation()` / `stopLoadingAnimation()` - Loading state
-- `ActionButtonView(menu:)` - Style action buttons based on menu item class
+- `fetchData(retryCount:)` - Async method to fetch menu data from API with retry mechanism (default retryCount: 0)
+- `groupedSections` - Computed property that transforms flat array to sections (excludes action buttons, groups by type 0 headers)
+- `actionButtons` - Computed property that extracts Rate Us and Sign Out items for button display
+- `startLoadingAnimation()` / `stopLoadingAnimation()` - @MainActor functions for loading state management
+- `ActionButtonView(menu:)` - View that styles action buttons based on menu item class
+- `debugLog(message:type:)` - Debug logging function (only in DEBUG builds)
 
 ### Key Modifiers
 - `.showBackgroundView()` - Apply custom background

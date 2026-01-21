@@ -7,10 +7,14 @@
 
 import SwiftUI
 
+/// App entry point - Initializes the SwiftUI application
+/// This is the main struct that serves as the entry point for the app
+/// It creates a WindowGroup containing the ContentView
 @main
 struct AssignmentApp: App {
     var body: some Scene {
         WindowGroup {
+            // ContentView serves as the root view container with loading overlay support
             ContentView()
         }
     }
