@@ -17,7 +17,7 @@ struct ContentBoxView: View {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(maxWidth: 25, maxHeight: 25)
+                        .frame(width: 25, height: 25)
                 } placeholder: {
                     ProgressView()
                 }
