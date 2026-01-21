@@ -28,6 +28,7 @@ This is a SwiftUI-based iOS application that displays a dynamic menu interface w
 - Dynamic menu display with sections
 - Collapsible "APPS" section with "See More" functionality
 - User profile display
+- Action buttons (Rate Us and Sign Out) extracted from API data
 - Loading states during API calls
 - Retry mechanism for failed API requests
 - Custom background styling
@@ -132,6 +133,7 @@ Assignment/
   - Two-column grid layout (`LazyVGrid`)
   - Section-based menu display
   - Collapsible "APPS" section (shows 4 items initially)
+  - Action buttons (Rate Us and Sign Out) displayed at bottom from API data
   - Fetches data on appear
 
 ### 4. **DataViewModel.swift**
@@ -141,7 +143,8 @@ Assignment/
   - `@Published var apiURL: String` - API endpoint
 - **Key Methods:**
   - `fetchData(retryCount:)` - Async API call with retry mechanism
-  - `groupedSections` - Transforms flat menu array into sections
+  - `groupedSections` - Transforms flat menu array into sections (filters out action buttons)
+  - `actionButtons` - Returns "Rate Us" and "Sign Out" menu items for button display
 - **Retry Logic:**
   - Maximum 3 retries
   - 2-second delay between retries
@@ -182,6 +185,14 @@ Assignment/
   - User name display
   - "Edit Profile" button
 
+### 10. **MenuScren+Buttons.swift**
+- **Purpose:** Button components and action button styling
+- **Components:**
+  - `SeeMoreButton` - Gray button for expanding collapsible sections
+  - `ActionButtonView(menu:)` - Dynamic button styling based on menu item class
+    - **Rate Us** (`core_main_sesapi_rate`): White background with shadow, icon and text
+    - **Sign Out** (`core_mini_auth`): Red border, red text, transparent background
+
 ---
 
 ## Data Flow
@@ -215,11 +226,17 @@ DataViewModel.dataModel (Published)
     ↓
 @StateObject in MenuScreen
     ↓
-groupedSections computed property
-    ↓
-ForEach renders MenuSection array
-    ↓
-LazyVGrid displays ContentBoxView items
+├─ groupedSections computed property (filters action buttons)
+│  ↓
+│  ForEach renders MenuSection array
+│  ↓
+│  LazyVGrid displays ContentBoxView items
+│
+└─ actionButtons computed property (extracts Rate Us & Sign Out)
+   ↓
+   ForEach renders action buttons
+   ↓
+   ActionButtonView displays styled buttons
 ```
 
 ---
@@ -249,14 +266,26 @@ https://demo.socialnetworking.solutions/sesapi/navigation?restApi=Sesapi&sesapi_
 - **Type 0:** Section header (e.g., "APPS", "HELP & MORE")
 - **Type 1:** Regular menu item
 
+### Action Buttons
+The last two items in the `menus` array are special action buttons:
+- **Rate Us**: `class == "core_main_sesapi_rate"` - Displayed as white button with icon and shadow
+- **Sign Out**: `class == "core_mini_auth"` - Displayed as red bordered button
+These are automatically filtered out from regular sections and displayed as full-width buttons at the bottom of the screen.
+
 ### Data Transformation
 The `groupedSections` computed property in `DataViewModel`:
-1. Iterates through flat menu array
-2. Groups items by section headers (type 0)
-3. Creates `MenuSection` objects with:
+1. Filters out action buttons (Rate Us and Sign Out) from the menu array
+2. Iterates through remaining menu items
+3. Groups items by section headers (type 0)
+4. Creates `MenuSection` objects with:
    - Section title
    - Menu items array
    - Collapsible flag (true for "APPS" section)
+
+The `actionButtons` computed property:
+1. Filters menu array for action button items
+2. Returns items where `class == "core_main_sesapi_rate"` (Rate Us) or `class == "core_mini_auth"` (Sign Out)
+3. These buttons are displayed separately at the bottom of the screen
 
 ---
 
@@ -290,6 +319,7 @@ The `groupedSections` computed property in `DataViewModel`:
 - Edit `MenuScreen.swift` for layout changes
 - Modify `ContentBoxView.swift` for item appearance
 - Update `DataViewModel.groupedSections` for grouping logic
+- Update `ActionButtonView(menu:)` in `MenuScren+Buttons.swift` for action button styling
 
 **When adding new API calls:**
 - Add methods to `DataViewModel.swift`
@@ -362,7 +392,7 @@ The `groupedSections` computed property in `DataViewModel`:
 | File | Purpose | Extends |
 |------|---------|---------|
 | `MenuScreen+Header.swift` | Header bar UI | `MenuScreen` |
-| `MenuScren+Buttons.swift` | Button components | `MenuScreen` |
+| `MenuScren+Buttons.swift` | Button components and action buttons | `MenuScreen` |
 
 ### Utilities
 | File | Purpose | Key Functions |
@@ -378,6 +408,13 @@ The `groupedSections` computed property in `DataViewModel`:
 1. Ensure API returns section header (type 0)
 2. Update `groupedSections` logic if needed
 3. Section will automatically appear in `MenuScreen`
+
+### Modifying Action Buttons
+1. Action buttons are automatically extracted from API data
+2. To change styling, edit `ActionButtonView(menu:)` in `MenuScren+Buttons.swift`
+3. Button identification uses `class` property:
+   - Rate Us: `"core_main_sesapi_rate"`
+   - Sign Out: `"core_mini_auth"`
 
 ### Modifying Menu Item Appearance
 1. Edit `ContentBoxView.swift`
@@ -429,8 +466,10 @@ The `groupedSections` computed property in `DataViewModel`:
 
 ### Key Methods
 - `fetchData(retryCount:)` - Fetch menu data from API
-- `groupedSections` - Transform flat array to sections
+- `groupedSections` - Transform flat array to sections (excludes action buttons)
+- `actionButtons` - Extract Rate Us and Sign Out items for button display
 - `startLoadingAnimation()` / `stopLoadingAnimation()` - Loading state
+- `ActionButtonView(menu:)` - Style action buttons based on menu item class
 
 ### Key Modifiers
 - `.showBackgroundView()` - Apply custom background

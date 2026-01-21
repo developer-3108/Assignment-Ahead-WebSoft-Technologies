@@ -54,8 +54,13 @@ struct MenuScreen: View {
                 }
                 .padding(.horizontal)
                 
-                SignOutButton
-                    .padding(.horizontal)
+                // Action buttons (Rate Us and Sign Out)
+                VStack(spacing: 12) {
+                    ForEach(dataViewModel.actionButtons) { menu in
+                        ActionButtonView(menu: menu)
+                    }
+                }
+                .padding(.horizontal)
             }
             .padding(.bottom, 50)
         }

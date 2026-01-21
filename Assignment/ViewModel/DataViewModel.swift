@@ -10,7 +10,7 @@ import Combine
 
 class DataViewModel: ObservableObject {
     @Published var dataModel: DataModel? = nil
-    @Published var apiURL: String  = "https://demo.socialnetworking.solutions/sesapi/navigation?restApi=\(restApi)&sesapi_platform=\(sesapi_platform)&auth_token=\(authtoken)"
+    let apiURL: String  = "https://demo.socialnetworking.solutions/sesapi/navigation?restApi=\(restApi)&sesapi_platform=\(sesapi_platform)&auth_token=\(authtoken)"
     
     private let maxRetries: Int = 3
     private let retryDelay: TimeInterval = 2.0
@@ -21,7 +21,7 @@ class DataViewModel: ObservableObject {
         
         debugLog(message: "Starting to fetch the API data", type: .info)
         
-        guard let url = URL(string: apiURL) else {
+        guard !apiURL.isEmpty, let url = URL(string: apiURL) else {
             debugLog(message: "Failed to get API URL", type: .failed)
             return
         }
@@ -58,11 +58,16 @@ extension DataViewModel {
     var groupedSections: [MenuSection] {
         guard let rawMenus = dataModel?.result.menus else { return [] }
         
+        // Filter out action buttons (Rate Us and Sign Out)
+        let regularMenus = rawMenus.filter { menu in
+            menu.class != "core_main_sesapi_rate" && menu.class != "core_mini_auth"
+        }
+        
         var sections: [MenuSection] = []
         var currentItems: [Menu] = []
         var currentHeader: String? = nil
         
-        for menu in rawMenus {
+        for menu in regularMenus {
             if menu.type == 0 {
                 if !currentItems.isEmpty {
                     
@@ -84,5 +89,13 @@ extension DataViewModel {
         }
         
         return sections
+    }
+    
+    var actionButtons: [Menu] {
+        guard let rawMenus = dataModel?.result.menus else { return [] }
+        
+        return rawMenus.filter { menu in
+            menu.class == "core_main_sesapi_rate" || menu.class == "core_mini_auth"
+        }
     }
 }
