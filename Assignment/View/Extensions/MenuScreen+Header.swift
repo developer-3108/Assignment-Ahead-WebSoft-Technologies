@@ -7,9 +7,17 @@
 
 import SwiftUI
 
+// MARK: - MenuScreen Header Extension
+/// Extension containing header bar UI components
+/// Separated from main MenuScreen for better code organization
 extension MenuScreen {
+    
+    // MARK: - Header Bar
+    
+    /// Main header bar with menu title, language selector, and search icon
     var headerBar: some View {
         HStack {
+            // Menu title
             Text("Menu")
                 .foregroundStyle(.primary)
                 .font(.title)
@@ -17,13 +25,19 @@ extension MenuScreen {
             
             Spacer()
             
+            // Language selector button
             languageSelector
             
+            // Search icon button
             searchIcon
         }
         .padding(.horizontal)
     }
     
+    // MARK: - Header Components
+    
+    /// Language selector component showing country, currency, and language
+    /// Displays with globe icon and dropdown chevron
     var languageSelector: some View {
         HStack {
             Image(systemName: "globe.fill")
@@ -38,6 +52,8 @@ extension MenuScreen {
         .background(Capsule().fill(Color(.systemGray5)))
     }
     
+    /// Search icon button with circular background
+    /// Uses system gray background for visual consistency
     var searchIcon: some View {
         Image(systemName: "magnifyingglass")
             .padding(10)
